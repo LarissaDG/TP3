@@ -1,0 +1,10 @@
+.vscode/
+.zshlocal
+*.txt
+*.doc
+*.png
+*.zip
+*.o
+*.m4s
+*.log
+*.odt
