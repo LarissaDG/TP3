@@ -22,7 +22,7 @@ int main(int argc, char **argv){
 
     struct timeval timeout;    
 
-    int i,flag=1,peer_ctrl=0,numChunksSolicitados;
+    int flag=1,peer_ctrl=0,numChunksSolicitados;
 
     mini_msg mail;
     response msg;
@@ -91,7 +91,8 @@ int main(int argc, char **argv){
 
     if(sendto(socket_desc, &mail, sizeof(mail), 0,
          (struct sockaddr*)&server_addr, server_struct_length) < 0){
-        logexit("send");
+
+        logexitEspecial("send",peer,controle);
     }
 
     //Recebo uma mensagem
@@ -100,7 +101,7 @@ int main(int argc, char **argv){
     while(flag){
         if(recvfrom(socket_desc, &mail, sizeof(mail),MSG_PEEK,
              (struct sockaddr*)&server_addr, &server_struct_length) < 0){
-            logexit("recv");
+            logexitEspecial("recv",peer,controle);
         }
         //Printo os dados coletados da mensagem
         printf("Received message from IP: %s and port: %i\n",
@@ -112,7 +113,7 @@ int main(int argc, char **argv){
             //recebe o chunk info
             if(recvfrom(socket_desc, &mail, sizeof(mail),0,
                  (struct sockaddr*)&server_addr, &server_struct_length) < 0){
-                logexit("recv");
+                logexitEspecial("recv",peer,controle);
             }
             printf("Recebo CHUNK_INFO: \n");
             imprime_mini_msg(mail);
@@ -148,7 +149,7 @@ int main(int argc, char **argv){
 
                 if(sendto(socket_desc, &mail, sizeof(mail), 0,
                      (struct sockaddr*)&server_addr, server_struct_length) < 0){
-                    logexit("send");
+                    logexitEspecial("send",peer,controle);
                 }
             }
             break;
@@ -157,7 +158,7 @@ int main(int argc, char **argv){
             //recebe a response
             if(recvfrom(socket_desc, &msg, sizeof(msg),0,
                 (struct sockaddr*)&server_addr, &server_struct_length) < 0){
-                logexit("recv");
+                logexitEspecial("recv",peer,controle);
             }
 
             imprime_response(msg);
@@ -182,35 +183,9 @@ int main(int argc, char **argv){
     //--------FINALIZAÇÕES ---------------------------------------
     printf("Saio do while\n");
 
-    numChunksSolicitados = 0;
-    for(i=0;i<VAR;i++){
-        if(peer[i].Chunk->solicitado >= 1){
-            numChunksSolicitados ++;
-        }
-    }
-
-    for(i=0;i<VAR;i++){
-        if(!jaRecebiTudo(peer[i].Chunk,numChunksSolicitados)){
-            //Adicionar no arquivo outputlogIP os dados como 0;
-            addLogFaltante(peer[i].ip,peer[i].port,peer[i].Chunk);
-        }
-    }
-    
-
-    for(i=0;i<NUM;i++){
+    /*for(i=0;i<NUM;i++){
          printf("%d) Solicitado: %d Recebido %d\n",i,controle[i].solicitado,controle[i].recebido);
-    }
-
-    /*
-    for(i=0;i<peer_ctrl;i++){
-        printf("IP: %s\n",inet_ntoa(peer[i].ip));
-        printf("Port: %i\n",peer[i].port);
-        printf("Ja mandou: %i\n",peer[i].jaEnviouGet);
-        for(j=0;j<NUM;j++){
-            printf("%d) Solicitado: %d Recebido: %d\n",j,peer[i].Chunk[j].solicitado,peer[i].Chunk[j].recebido);
-        }
-    }
-    */
+    }*/
 
     // Close the socket:
     close(socket_desc);

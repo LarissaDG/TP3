@@ -254,7 +254,7 @@ int main(int argc, char **argv){
                     }
                 }
             }
-            flag=0;
+            //flag=0;
             break;
             
             default:

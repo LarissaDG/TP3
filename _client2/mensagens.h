@@ -8,7 +8,7 @@
 #define TAM 20
 #define NUM 11
 #define TTL 3
-#define TIMEOUT 5
+#define TIMEOUT 30
 
 //1)Hello/3)Chunk info/4)Get/
 typedef struct{

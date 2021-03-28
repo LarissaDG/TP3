@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -367,6 +368,7 @@ void processa_response(struct in_addr ip,unsigned short port, response msg, stat
 }
 
 void addLogFaltante(struct in_addr ip,unsigned short port,status *vetor){
+	printf("DEntro fun 3\n");
 	int i;
 	char aux[VAR];
 	char aux2[VAR];
@@ -386,7 +388,7 @@ void addLogFaltante(struct in_addr ip,unsigned short port,status *vetor){
 
 	//Escreve no arquivo
 	for(i=0;i<VAR;i++){
-		if(vetor[i].solicitado == 2 && vetor[i].recebido == 0 ){
+		if(vetor[i].solicitado >= 1 && vetor[i].recebido == 0 ){
 			fprintf(arquivo,"0:0 - %d\n",i);
 			vetor[i].recebido++;
 		}
@@ -396,6 +398,7 @@ void addLogFaltante(struct in_addr ip,unsigned short port,status *vetor){
 }
 
 int jaRecebiTudo(status *vetor,int numChunksSolicitados){
+	printf("DEntro fun 2\n");
 	int i,count=0;
 
 	for(i=0;i<NUM;i++){
@@ -403,6 +406,8 @@ int jaRecebiTudo(status *vetor,int numChunksSolicitados){
 			count ++;
 		}
 	}
+	//printf("count  = %d\n",count);
+	//printf("numChunksSolicitados  = %d\n",numChunksSolicitados);
 	if(numChunksSolicitados == count){
 		return 1;
 	}
@@ -419,6 +424,59 @@ int VerificaIP(struct in_addr ip,unsigned short port,vizinhos viz){
 	}
 	return 0;
 }
+
+int verificaSolicitadosIP(peer_data *peer){
+	int numChunksSolicitados = 0,i;
+	for(i=0;i<VAR;i++){
+        if(peer[i].Chunk->solicitado >= 1){
+            numChunksSolicitados ++;
+        }
+    }
+    return numChunksSolicitados;
+}
+
+int countSolicitadosEntrada(status *controle){
+	int numChunksSolicitados = 0,i;
+	for(i=0;i<NUM;i++){
+        if(controle[i].solicitado >= 1){
+        	numChunksSolicitados++;
+        }
+    }
+    return numChunksSolicitados;
+}
+
+void finaliza(peer_data *peer,status *controle){
+	printf("DEntro fun 1\n");
+	int i,num;
+
+    num = verificaSolicitadosIP(peer); // Se perdeu
+    if(num == 0){
+    	//Eh porque não tinha
+    	num = countSolicitadosEntrada(controle);
+    	addLogFaltante(peer[0].ip,peer[0].port,controle);
+    }
+	//printf("numChunksSolicitados %d\n",num);
+    else{
+
+
+	    for(i=0;i<VAR;i++){
+	        if(!jaRecebiTudo(peer[i].Chunk,num)){
+	            //Adicionar no arquivo outputlogIP os dados como 0;
+	            addLogFaltante(peer[i].ip,peer[i].port,peer[i].Chunk);
+	        }
+	    }
+	}
+}
+
+void logexitEspecial(const char *msg,peer_data *peer,status *controle) {
+	if(errno == EAGAIN || errno == EWOULDBLOCK){
+		printf("Finalizando ... \n");
+		finaliza(peer,controle);
+    }
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
+
 /*if (recvfrom(socket_desc, &mail, sizeof(mail), 0,
          (struct sockaddr*)&client_addr, &client_struct_length) < 0){
         logexit("receive");

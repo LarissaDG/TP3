@@ -38,8 +38,16 @@ int busca_peer(peer_data *peer,int tam,struct in_addr ip,unsigned short port);
 
 void processa_response(struct in_addr ip,unsigned short port, response msg, status *vetor);
 
+void addLogFaltante(struct in_addr ip,unsigned short port,status *vetor);
+
 int jaRecebiTudo(status *vetor,int numChunksSolicitados);
 
 int VerificaIP(struct in_addr ip,unsigned short port,vizinhos viz);
 
-void addLogFaltante(struct in_addr ip,unsigned short port,status *vetor);
+int verificaSolicitadosIP(peer_data *peer);
+
+int countSolicitadosEntrada(status *controle);
+
+void finaliza(peer_data *peer,status *controle);
+
+void logexitEspecial(const char *msg,peer_data *peer,status *controle);
